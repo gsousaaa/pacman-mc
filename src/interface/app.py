@@ -2,13 +2,10 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import random
 
-# Configuração da página
 st.set_page_config(page_title="Pac-Man Labirinto Clássico", layout="centered")
 st_autorefresh(interval=200, key="game_loop")
 
-# CRÍTICO: Para o algoritmo de labirinto clássico funcionar perfeitamente,
-# as dimensões internas precisam ser ímpares.
-LARGURA = 19  # Aumentei um pouco para ficar mais parecido com o arcade
+LARGURA = 19
 ALTURA = 11
 
 def gerar_mapa_aleatorio(altura, largura):
@@ -16,57 +13,45 @@ def gerar_mapa_aleatorio(altura, largura):
     Gera um labirinto autêntico de Pac-Man usando Busca em Profundidade (DFS).
     Garante caminhos estreitos de 1 bloco e sem áreas abertas estilo 'caverna'.
     """
-    # 1. Inicializa tudo como parede pura
     mapa = [[1 for _ in range(largura)] for _ in range(altura)]
     
-    # Lista para guardar o caminho (stack) do algoritmo de backtracking
     pilha = []
     visitado = set()
     
-    # Começa na célula (1, 1)
     inicio = (1, 1)
     pilha.append(inicio)
     visitado.add(inicio)
-    mapa[1][1] = 2  # 2 = Caminho com comida
+    mapa[1][1] = 2 
     
     while pilha:
         cx, cy = pilha[-1]
         vizinhos = []
         
-        # Direções possíveis pulando 2 células (para manter as paredes intermediárias)
         direcoes = [(-2, 0), (2, 0), (0, -2), (0, 2)]
         
         for dx, dy in direcoes:
             nx, ny = cx + dx, cy + dy
-            # Garante que está dentro dos limites internos do mapa (deixando a borda externa intacta)
             if 0 < nx < altura - 1 and 0 < ny < largura - 1:
                 if (nx, ny) not in visitado:
                     vizinhos.append((nx, ny, dx, dy))
                     
         if vizinhos:
-            # Escolhe um vizinho aleatório para avançar
             nx, ny, dx, dy = random.choice(vizinhos)
             
-            # "Derruba" a parede que fica exatamente entre a célula atual e o vizinho escolhido
             mapa[cx + dx // 2][cy + dy // 2] = 2
             mapa[nx][ny] = 2
             
             visitado.add((nx, ny))
             pilha.append((nx, ny))
         else:
-            # Se bateu num beco sem saída, volta na pilha (backtrack)
             pilha.pop()
             
-    # Cria algumas aberturas extras aleatórias para o labirinto não ter apenas um caminho único
-    # Isso permite que o Pac-Man dê voltas e fuja dos fantasmas de forma estratégica
     for i in range(2, altura - 2):
         for j in range(2, largura - 2):
             if mapa[i][j] == 1 and random.random() < 0.15:
-                # Checa se quebrar essa parede conecta dois caminhos válidos
                 if (mapa[i-1][j] == 2 and mapa[i+1][j] == 2) or (mapa[i][j-1] == 2 and mapa[i][j+1] == 2):
                     mapa[i][j] = 2
 
-    # Garante espaço limpo para o Pac-Man nascer
     mapa[1][1] = 2
     return mapa
 
@@ -80,7 +65,6 @@ MAPA_PADRAO = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
-# --- INICIALIZAÇÃO DO ESTADO ---
 if "mapa" not in st.session_state:
     st.session_state.mapa = gerar_mapa_aleatorio(ALTURA, LARGURA)
     st.session_state.pacman_pos = [1, 1]
@@ -88,7 +72,6 @@ if "mapa" not in st.session_state:
     st.session_state.score = 0
     st.session_state.modo = "Manual"
 
-# --- LÓGICA DE MOVIMENTAÇÃO ---
 def mover_agente(pos, direcao):
     nova_pos = pos[:]
     if direcao == "Cima":    nova_pos[0] -= 1
@@ -105,7 +88,6 @@ def lógica_ia_monte_carlo():
     movimentos_possiveis = ["Cima", "Baixo", "Esquerda", "Direita"]
     return random.choice(movimentos_possiveis)
 
-# --- INTERFACE SIDEBAR ---
 with st.sidebar:
     st.header("Configurações")
     
@@ -123,7 +105,6 @@ with st.sidebar:
     st.markdown("---")
     st.write("**Controles Manuais:**")
     
-    # Criamos os botões com chaves (keys) específicas para o JavaScript localizá-los
     col_up, _ = st.columns(2)
     col_left, col_down, col_right = st.columns(3)
     
@@ -159,11 +140,9 @@ if st.session_state.mapa[px][py] == 2:
     st.session_state.mapa[px][py] = 0
     st.session_state.score += 10
 
-# --- RENDERIZAÇÃO DA TELA (Versão com Alinhamento Perfeito) ---
 st.title("Pac-Man - Interface Jogável")
 st.metric(label="Placar (Score)", value=st.session_state.score)
 
-# Iniciamos uma tabela HTML com estilos rígidos de tamanho e centralização
 grid_html = """
 <table style='border-collapse: collapse; background-color: black; margin: auto; border: 0px solid #1919A6 !important; border-radius: 10px;'>
 """
@@ -171,7 +150,6 @@ grid_html = """
 for i, linha in enumerate(st.session_state.mapa):
     grid_html += "<tr>"
     for j, celula in enumerate(linha):
-        # Cada célula (td) terá exatamente 35px de largura e altura
         grid_html += "<td style='border: 0px solid #1919A6 !important; width: 35px; height: 35px; text-align: center; vertical-align: middle; font-size: 24px; padding: 0;'>"
         
         if [i, j] == st.session_state.pacman_pos:
@@ -183,7 +161,6 @@ for i, linha in enumerate(st.session_state.mapa):
         elif celula == 2:
             grid_html += "🍬"
         else:
-            # Espaço vazio fica totalmente transparente, mostrando o fundo preto da tabela
             grid_html += "" 
             
         grid_html += "</td>"
@@ -191,13 +168,11 @@ for i, linha in enumerate(st.session_state.mapa):
 
 grid_html += "</table>"
 
-# Renderiza a tabela simétrica no Streamlit
 st.markdown(grid_html, unsafe_allow_html=True)
 
 if st.session_state.pacman_pos == st.session_state.fantasma_pos:
     st.error("💥 Fim de Jogo! O Fantasma te pegou!")
 
-# --- INJEÇÃO DO SCRIPT DE ESCUTA DO TECLADO (VIA MARKDOWN) ---
 js_code = """
 <script>
     // Conecta as teclas do teclado físico aos botões da interface do Streamlit
