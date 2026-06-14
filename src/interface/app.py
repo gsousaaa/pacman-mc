@@ -1,6 +1,17 @@
+import sys
+import os
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import random
+
+# Adiciona a pasta 'src' ao path para permitir a importação do logger
+caminho_src = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if caminho_src not in sys.path:
+    sys.path.append(caminho_src)
+
+from analytics.metrics_logger import MetricsLogger
+
+logger = MetricsLogger()
 
 st.set_page_config(page_title="Pac-Man Labirinto Clássico", layout="centered")
 st_autorefresh(interval=200, key="game_loop")
@@ -71,6 +82,8 @@ if "mapa" not in st.session_state:
     st.session_state.fantasma_pos = [5, 13]
     st.session_state.score = 0
     st.session_state.modo = "Manual"
+    st.session_state.passos = 0
+    st.session_state.game_over_registrado = False
 
 def mover_agente(pos, direcao):
     nova_pos = pos[:]
@@ -96,6 +109,8 @@ with st.sidebar:
         st.session_state.pacman_pos = [1, 1]
         st.session_state.fantasma_pos = [ALTURA-2, LARGURA-2]
         st.session_state.score = 0
+        st.session_state.passos = 0
+        st.session_state.game_over_registrado = False
         st.rerun()
 
     st.markdown("---")
@@ -122,23 +137,29 @@ with st.sidebar:
         st.session_state.pacman_pos = [1, 1]
         st.session_state.fantasma_pos = [5, 13]
         st.session_state.score = 0
+        st.session_state.passos = 0
+        st.session_state.game_over_registrado = False
         st.rerun()
 
-if st.session_state.modo == "IA (Monte Carlo)":
-    direcao_ia = lógica_ia_monte_carlo()
-    st.session_state.pacman_pos = mover_agente(st.session_state.pacman_pos, direcao_ia)
-else:
-    if "direcao_manual" in st.session_state:
-        st.session_state.pacman_pos = mover_agente(st.session_state.pacman_pos, st.session_state.direcao_manual)
-        del st.session_state.direcao_manual
+# Só movimenta e conta passos se o jogo não tiver acabado
+if st.session_state.pacman_pos != st.session_state.fantasma_pos:
+    st.session_state.passos += 1  # Conta os passos da rodada
+    
+    if st.session_state.modo == "IA (Monte Carlo)":
+        direcao_ia = lógica_ia_monte_carlo()
+        st.session_state.pacman_pos = mover_agente(st.session_state.pacman_pos, direcao_ia)
+    else:
+        if "direcao_manual" in st.session_state:
+            st.session_state.pacman_pos = mover_agente(st.session_state.pacman_pos, st.session_state.direcao_manual)
+            del st.session_state.direcao_manual
 
-direcao_fantasma = random.choice(["Cima", "Baixo", "Esquerda", "Direita"])
-st.session_state.fantasma_pos = mover_agente(st.session_state.fantasma_pos, direcao_fantasma)
+    direcao_fantasma = random.choice(["Cima", "Baixo", "Esquerda", "Direita"])
+    st.session_state.fantasma_pos = mover_agente(st.session_state.fantasma_pos, direcao_fantasma)
 
-px, py = st.session_state.pacman_pos
-if st.session_state.mapa[px][py] == 2:
-    st.session_state.mapa[px][py] = 0
-    st.session_state.score += 10
+    px, py = st.session_state.pacman_pos
+    if st.session_state.mapa[px][py] == 2:
+        st.session_state.mapa[px][py] = 0
+        st.session_state.score += 10
 
 st.title("Pac-Man - Interface Jogável")
 st.metric(label="Placar (Score)", value=st.session_state.score)
@@ -172,6 +193,22 @@ st.markdown(grid_html, unsafe_allow_html=True)
 
 if st.session_state.pacman_pos == st.session_state.fantasma_pos:
     st.error("💥 Fim de Jogo! O Fantasma te pegou!")
+    
+    if not st.session_state.game_over_registrado:
+        dificuldade_jogada = "manual_play" if st.session_state.modo == "Manual" else "ia_play"
+        
+        # Salva no CSV usando a classe MetricsLogger
+        logger.log_match(
+            difficulty=dificuldade_jogada,
+            result="defeat", 
+            steps=st.session_state.passos,
+            total_reward=st.session_state.score
+        )
+        
+        # Bloqueia para não salvar o mesmo log infinitamente a cada 200ms
+        st.session_state.game_over_registrado = True
+        st.success("📊 Partida registrada nos logs com sucesso!")
+# ==========================================
 
 js_code = """
 <script>

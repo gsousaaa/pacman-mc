@@ -1,0 +1,27 @@
+# Caches e arquivos compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes Virtuais (caso use algum)
+venv/
+env/
+.venv/
+
+# Caches de IDEs (VS Code, PyCharm, etc)
+.vscode/
+.idea/
+
+# Arquivos do Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos gerados localmente pelo projeto (Métricas e Modelos)
+# Evita subir os CSVs e as matrizes Numpy pesadas, mas mantém as pastas
+results/logs/*.csv
+results/policies/*.npy
+results/q_tables/*.npy
+results/visits/*.npy
+
+# Ignora os resultados gerados dentro da pasta rl também
+src/rl/results/**/*.npy

@@ -9,6 +9,8 @@ from game.maps.default_map import PACMAN_MAP
 from game.env.environment import Environment
 from rl.monte_carlo_es import mc_inicios_exploratorios
 
+from analytics.metrics_logger import MetricsLogger
+
 # Dicionário de Dificuldades com os hiperparâmetros do manual
 DIFFICULTIES = {
     "easy": {
@@ -32,6 +34,8 @@ def train_difficulty(difficulty: str):
     print(f"--- Iniciando treinamento para a dificuldade: {difficulty.upper()} ---")
     config = DIFFICULTIES[difficulty]
 
+    logger = MetricsLogger()
+
     # Criar Environment com player_mode="npc" obrigatório para o treino
     env = Environment(
         game_map=PACMAN_MAP,
@@ -39,13 +43,13 @@ def train_difficulty(difficulty: str):
     )
 
     # Executar o Monte Carlo
-    Q, Pi, numero_de_visitas, episodios_treinados = mc_inicios_exploratorios(
-        ambiente=env,
-        gamma=config["gamma"],
-        N=config["N"],
-        T=config["T"],
-        seed=42
-    )
+    Q, Pi, numero_de_visitas, episodios_treinados, recompensa_media, recompensa_total = mc_inicios_exploratorios(
+            ambiente=env,
+            gamma=config["gamma"],
+            N=config["N"],
+            T=config["T"],
+            seed=42
+        )
 
     base_dir = os.path.dirname(__file__)
 
@@ -59,6 +63,15 @@ def train_difficulty(difficulty: str):
 
     print(f"Treino finalizado: {difficulty}")
     print(f"Episódios treinados: {episodios_treinados}\n")
+
+    logger.log_training(
+        difficulty=difficulty,
+        episodes=episodios_treinados,
+        gamma=config["gamma"],
+        max_steps=config["T"],
+        avg_reward=recompensa_media,
+        total_reward=recompensa_total
+    )
 
 
 def train_all():
