@@ -51,7 +51,7 @@ def mc_inicios_exploratorios(
     N: int = 10_000,
     T: int = 50,
     seed: int = 42
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, float, float]:
     """
     Monte Carlo com Inícios Exploratórios (ES).
     """
@@ -68,6 +68,9 @@ def mc_inicios_exploratorios(
     Pi = np.zeros((n_estados, n_acoes), dtype=float)
     Pi[np.arange(n_estados), rng.integers(n_acoes, size=n_estados)] = 1.0
 
+    # Variável para acumular a recompensa não-descontada de todos os episódios
+    recompensa_total_geral = 0.0
+
     for k in range(1, N + 1):
         # 1) Inícios exploratórios
         s0 = int(rng.integers(n_estados))
@@ -75,6 +78,10 @@ def mc_inicios_exploratorios(
 
         # 2) Gera trajetória
         trajetoria = gerar_episodio(ambiente, s0, a0, Pi, T)
+
+        # Soma as recompensas obtidas neste episódio específico
+        recompensa_episodio = sum(step[2] for step in trajetoria)
+        recompensa_total_geral += recompensa_episodio
 
         # 3) Varredura reversa
         g = 0.0
@@ -91,5 +98,8 @@ def mc_inicios_exploratorios(
             best_a = int(np.argmax(Q[s_t]))
             Pi[s_t] = 0.0 
             Pi[s_t, best_a] = 1.0 
+    
+    # Calcula a recompensa média global
+    recompensa_media = recompensa_total_geral / N if N > 0 else 0.0
 
-    return Q, Pi, numero_de_visitas, k
+    return Q, Pi, numero_de_visitas, k, recompensa_media, recompensa_total_geral
