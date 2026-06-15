@@ -82,6 +82,9 @@ class Environment:
         self.done = False
         self.steps = 0
         self.total_reward = 0
+        
+        self.player_score = 0
+        self.player_won = False
 
         return self.encode_state()
 
@@ -189,7 +192,29 @@ class Environment:
 
         if self._is_capture():
             self.done = True
+            self.player_won = False
+            return True
+        
+        self._eat_food()
+        
+        if self._all_food_eaten():
+            self.done = True
+            self.player_won = True
 
+        return True
+    
+    def _eat_food(self): 
+        player_row = self.player.position.row
+        player_col = self.player.position.col
+        if self.map[player_row][player_col] == ".":
+            self.map[player_row][player_col] = " "
+            self.player_score += 10
+            
+    def _all_food_eaten(self) -> bool: 
+        for row in self.map:
+            if "." in row:
+                return False
+            
         return True
 
     def _is_capture(self) -> bool:
@@ -223,6 +248,8 @@ class Environment:
             "player": self.player,
             "steps": self.steps,
             "total_reward": self.total_reward,
+            "player_score": self.player_score,
+            "player_won": self.player_won,
             "done": self.done,
             "height": self.height,
             "width": self.width,
