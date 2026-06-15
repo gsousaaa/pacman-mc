@@ -25,7 +25,7 @@ O projeto foi construído utilizando as seguintes tecnologias:
 
 ---
 
-## 📦 Como Executar o Projeto
+## Como Executar o Projeto
 
 ### Pré-requisitos
 Certifique-se de ter instalado em sua máquina o Python e o Git.
