@@ -19,7 +19,6 @@ logger = MetricsLogger()
 
 st.set_page_config(page_title="Pac-Man Monte Carlo", layout="centered")
 
-# Atualiza a tela a cada 200ms
 st_autorefresh(interval=200, key="game_loop")
 
 
@@ -183,7 +182,6 @@ def move_player(action: int):
     env.move_player(action)
 
 
-# Estado inicial da aplicação
 if "difficulty" not in st.session_state:
     reset_game("easy")
 

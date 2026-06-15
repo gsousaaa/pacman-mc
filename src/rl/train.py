@@ -11,7 +11,6 @@ from rl.monte_carlo_es import mc_inicios_exploratorios
 
 from analytics.metrics_logger import MetricsLogger
 
-# Dicionário de Dificuldades com os hiperparâmetros do manual
 DIFFICULTIES = {
     "easy": {
         "N": 5_000,
@@ -36,13 +35,11 @@ def train_difficulty(difficulty: str):
 
     logger = MetricsLogger()
 
-    # Criar Environment com player_mode="npc" obrigatório para o treino
     env = Environment(
         game_map=PACMAN_MAP,
         player_mode="npc"
     )
 
-    # Executar o Monte Carlo
     Q, Pi, numero_de_visitas, episodios_treinados, recompensa_media, recompensa_total = mc_inicios_exploratorios(
             ambiente=env,
             gamma=config["gamma"],

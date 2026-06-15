@@ -17,28 +17,21 @@ def gerar_episodio(
 
     trajetoria: List[Tuple[int, int, float]] = []
 
-    # O ambiente usa o reset com start_state para os inícios exploratórios
     state = ambiente.reset(start_state=estado_inicial)
     action = acao_inicial
 
-    # Loop do episódio até o limite de tempo T
     for _ in range(T):
-        # Executa a ação no ambiente e recebe o retorno
         next_state, reward, done = ambiente.step(action)
         
         trajetoria.append((state, action, reward))
         
-        # Se o Ghost capturou o Pac-Man, encerramos a coleta
         if done:
             break
             
-        # Atualiza o estado para o próximo turno
         state = next_state
         
-        # Seleciona a próxima ação com base nas probabilidades da política
         action = np.random.choice(ambiente.n_actions, p=Pi[state])
 
-    # Preenchimento da trajetória caso tenha terminado antes de T
     while len(trajetoria) < T:
         trajetoria.append((state, action, 0.0))
 
@@ -64,26 +57,20 @@ def mc_inicios_exploratorios(
     numero_de_visitas = np.zeros((n_estados, n_acoes), dtype=float)
     soma_dos_retornos = np.zeros((n_estados, n_acoes), dtype=float)
 
-    # Política inicial aleatória
     Pi = np.zeros((n_estados, n_acoes), dtype=float)
     Pi[np.arange(n_estados), rng.integers(n_acoes, size=n_estados)] = 1.0
 
-    # Variável para acumular a recompensa não-descontada de todos os episódios
     recompensa_total_geral = 0.0
 
     for k in range(1, N + 1):
-        # 1) Inícios exploratórios
         s0 = int(rng.integers(n_estados))
         a0 = int(rng.integers(n_acoes))
 
-        # 2) Gera trajetória
         trajetoria = gerar_episodio(ambiente, s0, a0, Pi, T)
 
-        # Soma as recompensas obtidas neste episódio específico
         recompensa_episodio = sum(step[2] for step in trajetoria)
         recompensa_total_geral += recompensa_episodio
 
-        # 3) Varredura reversa
         g = 0.0
         for t in range(T - 1, -1, -1):
             s_t, a_t, r_t_plus_1 = trajetoria[t]
@@ -99,7 +86,6 @@ def mc_inicios_exploratorios(
             Pi[s_t] = 0.0 
             Pi[s_t, best_a] = 1.0 
     
-    # Calcula a recompensa média global
     recompensa_media = recompensa_total_geral / N if N > 0 else 0.0
 
     return Q, Pi, numero_de_visitas, k, recompensa_media, recompensa_total_geral

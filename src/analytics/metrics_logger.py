@@ -23,7 +23,6 @@ class MetricsLogger:
         """Cria os arquivos CSV caso não existam."""
         if not os.path.exists(self.training_file):
             with open(self.training_file, "w", newline="") as f:
-                # Usando ponto-e-vírgula (padrão do Excel no Brasil)
                 writer = csv.writer(f, delimiter=";")
                 writer.writerow(
                     [
@@ -63,7 +62,6 @@ class MetricsLogger:
         with open(self.training_file, "a", newline="") as f:
             writer = csv.writer(f, delimiter=";")
 
-            # Converte os floats para string trocando o ponto por vírgula
             gamma_str = str(gamma).replace(".", ",")
             avg_reward_str = str(round(avg_reward, 2)).replace(".", ",")
             total_reward_str = str(round(total_reward, 2)).replace(".", ",")
@@ -117,7 +115,6 @@ class MetricsLogger:
                 else:
                     losses += 1
 
-                # Desfazendo a vírgula para o Python conseguir somar
                 reward_float = float(row["total_reward"].replace(",", "."))
                 rewards.append(reward_float)
                 steps_list.append(int(row["steps"]))
