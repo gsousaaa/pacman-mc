@@ -100,6 +100,8 @@ def get_action_name(action: int) -> str:
         return "Esquerda"
     if action == Action.RIGHT:
         return "Direita"
+    if action == Action.STAY:
+        return "Parado"
 
     return "Desconhecida"
 
