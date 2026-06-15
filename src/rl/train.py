@@ -14,19 +14,19 @@ from analytics.metrics_logger import MetricsLogger
 # Dicionário de Dificuldades com os hiperparâmetros do manual
 DIFFICULTIES = {
     "easy": {
-        "N": 1_000,
-        "T": 40,
-        "gamma": 0.85,
-    },
-    "medium": {
-        "N": 10_000,
-        "T": 60,
+        "N": 5_000,
+        "T": 80,
         "gamma": 0.90,
     },
+    "medium": {
+        "N": 20_000,
+        "T": 120,
+        "gamma": 0.75,
+    },
     "hard": {
-        "N": 50_000,
-        "T": 100,
-        "gamma": 0.95,
+        "N": 80_000,
+        "T": 200,
+        "gamma": 0.50,
     },
 }
 
