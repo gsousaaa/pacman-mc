@@ -13,6 +13,9 @@ def get_next_position(position: Position, action: int) -> Position:
 
     if action == Action.RIGHT:
         return Position(position.row, position.col + 1)
+    
+    if action == Action.STAY:
+        return position 
 
     return position
 

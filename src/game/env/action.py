@@ -5,5 +5,6 @@ class Action(IntEnum):
     DOWN = 1
     LEFT = 2
     RIGHT = 3
+    STAY = 4
     
 N_ACTIONS = len(Action)
